@@ -10,7 +10,6 @@ import '../widgets/site_header.dart';
 
 class PropertyListScreen extends StatefulWidget {
   const PropertyListScreen({required this.type, super.key});
-
   final ListingType type;
 
   @override
@@ -21,42 +20,57 @@ class _PropertyListScreenState extends State<PropertyListScreen> {
   final MockPropertyService _service = MockPropertyService.instance;
   final Set<String> _selectedLocations = <String>{};
   final Set<PropertyKind> _selectedKinds = <PropertyKind>{};
+  final TextEditingController _search = TextEditingController();
   SortOption _sortOption = SortOption.lowestPrice;
   double _maxPrice = 8000;
-  final ValueNotifier<double> _draftMaxPrice = ValueNotifier<double>(8000);
+  double _draftMaxPrice = 8000;
 
   @override
   void initState() {
     super.initState();
     _maxPrice = widget.type == ListingType.sale ? 8000 : 600;
-    _draftMaxPrice.value = _maxPrice;
+    _draftMaxPrice = _maxPrice;
   }
 
   @override
   void dispose() {
-    _draftMaxPrice.dispose();
+    _search.dispose();
     super.dispose();
   }
 
   void _goTopRoute(BuildContext context, String route) {
-    if (ModalRoute.of(context)?.settings.name == route) {
-      return;
-    }
+    if (ModalRoute.of(context)?.settings.name == route) return;
     Navigator.pushReplacementNamed(context, route);
+  }
+
+  void _clearFilters() {
+    setState(() {
+      _selectedLocations.clear();
+      _selectedKinds.clear();
+      _search.clear();
+      _maxPrice = widget.type == ListingType.sale ? 8000 : 600;
+      _draftMaxPrice = _maxPrice;
+      _sortOption = SortOption.lowestPrice;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final List<PropertyListing> listings = _service.fetchByType(widget.type);
     final bool isSale = widget.type == ListingType.sale;
-    final double min = isSale ? 4000 : 150;
-    final double max = isSale ? 8000 : 600;
+    final double minPrice = isSale ? 4000 : 150;
+    final double maxPrice = isSale ? 8000 : 600;
+    final List<PropertyListing> listings = _service.fetchByType(widget.type);
 
+    final String query = _search.text.trim().toLowerCase();
     final List<PropertyListing> filtered = listings.where((PropertyListing item) {
       final bool locationOk = _selectedLocations.isEmpty || _selectedLocations.contains(item.location);
       final bool kindOk = _selectedKinds.isEmpty || _selectedKinds.contains(item.kind);
       final bool priceOk = item.priceUsd <= _maxPrice;
-      return locationOk && kindOk && priceOk;
+      final bool textOk = query.isEmpty ||
+          item.title.toLowerCase().contains(query) ||
+          item.location.toLowerCase().contains(query) ||
+          item.description.toLowerCase().contains(query);
+      return locationOk && kindOk && priceOk && textOk;
     }).toList();
 
     filtered.sort((PropertyListing a, PropertyListing b) {
@@ -86,175 +100,215 @@ class _PropertyListScreenState extends State<PropertyListScreen> {
             ),
           ),
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
             sliver: SliverToBoxAdapter(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    isSale ? 'Propiedades en venta' : 'Propiedades en alquiler',
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                  const SizedBox(height: 6),
-                  Text('Filtra por ubicacion, tipo de propiedad y precio para encontrar rapido lo que buscas.'),
-                  const SizedBox(height: 14),
-                  Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1180),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      Text('${filtered.length} publicaciones', style: Theme.of(context).textTheme.titleMedium),
-                      OutlinedButton.icon(
-                        onPressed: () => _goTopRoute(
-                          context,
-                          isSale ? AppRoutes.rentals : AppRoutes.sales,
-                        ),
-                        icon: Icon(isSale ? Icons.home_work_outlined : Icons.sell_outlined),
-                        label: Text(isSale ? 'Ir a Alquiler' : 'Ir a Venta'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  LocationFilterChips(
-                    locations: MockPropertyService.locations,
-                    selectedLocations: _selectedLocations,
-                    onToggle: (String location, bool selected) {
-                      setState(() {
-                        if (selected) {
-                          _selectedLocations.add(location);
-                        } else {
-                          _selectedLocations.remove(location);
-                        }
-                      });
-                    },
-                    onClear: () => setState(_selectedLocations.clear),
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: <Widget>[
-                      OutlinedButton.icon(
-                        onPressed: () => setState(_selectedKinds.clear),
-                        icon: const Icon(Icons.layers_clear_outlined),
-                        label: const Text('Limpiar tipos'),
-                      ),
-                      ...MockPropertyService.propertyKinds.map(
-                        (PropertyKind kind) => FilterChip(
-                          label: Text(kind.label),
-                          selected: _selectedKinds.contains(kind),
-                          onSelected: (bool selected) {
-                            setState(() {
-                              if (selected) {
-                                _selectedKinds.add(kind);
-                              } else {
-                                _selectedKinds.remove(kind);
-                              }
-                            });
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(14),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      Text(isSale ? 'Terrenos en venta' : 'Propiedades en alquiler', style: Theme.of(context).textTheme.headlineMedium),
+                      const SizedBox(height: 6),
+                      Text(isSale
+                          ? 'Encontrá lotes por ubicación, superficie, presupuesto y características.'
+                          : 'Explorá propiedades disponibles y contactá directamente con el equipo.'),
+                      const SizedBox(height: 18),
+                      _buildSearchPanel(minPrice, maxPrice, isSale),
+                      const SizedBox(height: 16),
+                      Row(
                         children: <Widget>[
-                          Text('Precio USD maximo', style: Theme.of(context).textTheme.titleMedium),
-                          ValueListenableBuilder<double>(
-                            valueListenable: _draftMaxPrice,
-                            builder: (BuildContext context, double draftValue, _) {
-                              final double clamped = draftValue.clamp(min, max);
-                              return Slider(
-                                value: clamped,
-                                min: min,
-                                max: max,
-                                divisions: isSale ? 16 : 18,
-                                label: 'USD ${clamped.toStringAsFixed(0)}',
-                                onChanged: (double value) {
-                                  _draftMaxPrice.value = value;
-                                },
-                                onChangeEnd: (double value) {
-                                  setState(() => _maxPrice = value);
-                                },
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 6),
-                          DropdownButtonFormField<SortOption>(
-                            initialValue: _sortOption,
-                            decoration: const InputDecoration(labelText: 'Ordenar por'),
-                            items: const <DropdownMenuItem<SortOption>>[
-                              DropdownMenuItem(
-                                value: SortOption.lowestPrice,
-                                child: Text('Menor costo'),
-                              ),
-                              DropdownMenuItem(
-                                value: SortOption.highestPrice,
-                                child: Text('Mas caro'),
-                              ),
-                              DropdownMenuItem(
-                                value: SortOption.locationAsc,
-                                child: Text('Ubicacion'),
-                              ),
-                            ],
-                            onChanged: (SortOption? value) {
-                              if (value != null) {
-                                setState(() => _sortOption = value);
-                              }
-                            },
-                          ),
+                          Text('${filtered.length} resultados', style: Theme.of(context).textTheme.titleMedium),
+                          const Spacer(),
+                          if (_hasActiveFilters)
+                            TextButton.icon(
+                              onPressed: _clearFilters,
+                              icon: const Icon(Icons.restart_alt_rounded, size: 18),
+                              label: const Text('Limpiar'),
+                            ),
                         ],
                       ),
-                    ),
+                    ],
                   ),
-                  const SizedBox(height: 14),
-                ],
+                ),
               ),
             ),
           ),
           SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
             sliver: SliverLayoutBuilder(
-              builder: (BuildContext context, constraints) {
+              builder: (BuildContext context, SliverConstraints constraints) {
                 final double width = constraints.crossAxisExtent;
-                int crossAxisCount = 1;
-                if (width >= 1100) {
-                  crossAxisCount = 3;
-                } else if (width >= 700) {
-                  crossAxisCount = 2;
-                }
-
+                final int columns = width >= 1180 ? 3 : width >= 720 ? 2 : 1;
+                final double aspect = columns == 1 ? 1.28 : 0.82;
                 return SliverGrid.builder(
                   itemCount: filtered.length,
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossAxisCount,
-                    crossAxisSpacing: 14,
-                    mainAxisSpacing: 14,
-                    childAspectRatio: 0.84,
+                    crossAxisCount: columns,
+                    crossAxisSpacing: 18,
+                    mainAxisSpacing: 18,
+                    childAspectRatio: aspect,
                   ),
-                  itemBuilder: (_, int index) {
+                  itemBuilder: (BuildContext context, int index) {
                     final PropertyListing listing = filtered[index];
                     return ListingCard(
                       listing: listing,
-                      onViewDetail: () {
-                        Navigator.pushNamed(context, AppRoutes.detail, arguments: listing);
-                      },
+                      onViewDetail: () => Navigator.pushNamed(context, AppRoutes.detail, arguments: listing),
                     );
                   },
                 );
               },
             ),
           ),
-          const SliverToBoxAdapter(child: SizedBox(height: 20)),
-          const SliverPadding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            sliver: SliverToBoxAdapter(child: SiteFooter()),
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: 20)),
+          if (filtered.isEmpty)
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(20, 20, 20, 50),
+                child: _EmptyResults(),
+              ),
+            ),
+          const SliverToBoxAdapter(child: SiteFooter()),
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ],
+      ),
+    );
+  }
+
+  bool get _hasActiveFilters =>
+      _selectedLocations.isNotEmpty || _selectedKinds.isNotEmpty || _search.text.isNotEmpty;
+
+  Widget _buildSearchPanel(double minPrice, double maxPrice, bool isSale) {
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            final bool compact = constraints.maxWidth < 720;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    const Icon(Icons.search_rounded, color: Color(0xFF0A4D68)),
+                    const SizedBox(width: 8),
+                    Text('Buscar y filtrar', style: Theme.of(context).textTheme.titleLarge),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                if (compact)
+                  Column(children: _filterFields(minPrice, maxPrice, isSale))
+                else
+                  Wrap(spacing: 12, runSpacing: 12, children: _filterFields(minPrice, maxPrice, isSale)),
+                const SizedBox(height: 12),
+                LocationFilterChips(
+                  locations: MockPropertyService.locations,
+                  selectedLocations: _selectedLocations,
+                  onToggle: (String location, bool selected) {
+                    setState(() => selected ? _selectedLocations.add(location) : _selectedLocations.remove(location));
+                  },
+                  onClear: () => setState(_selectedLocations.clear),
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: MockPropertyService.propertyKinds.map((PropertyKind kind) {
+                    return FilterChip(
+                      avatar: Icon(_iconForKind(kind), size: 17),
+                      label: Text(kind.label),
+                      selected: _selectedKinds.contains(kind),
+                      onSelected: (bool selected) => setState(() {
+                        selected ? _selectedKinds.add(kind) : _selectedKinds.remove(kind);
+                      }),
+                    );
+                  }).toList(),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _filterFields(double minPrice, double maxPrice, bool isSale) {
+    return <Widget>[
+      SizedBox(
+        width: 310,
+        child: TextField(
+          controller: _search,
+          onChanged: (_) => setState(() {}),
+          decoration: InputDecoration(
+            labelText: 'Buscar por zona, título o descripción',
+            prefixIcon: const Icon(Icons.manage_search_rounded),
+            suffixIcon: _search.text.isEmpty ? null : IconButton(onPressed: () { _search.clear(); setState(() {}); }, icon: const Icon(Icons.close)),
+          ),
+        ),
+      ),
+      SizedBox(
+        width: 240,
+        child: DropdownButtonFormField<SortOption>(
+          initialValue: _sortOption,
+          decoration: const InputDecoration(labelText: 'Ordenar por'),
+          items: const <DropdownMenuItem<SortOption>>[
+            DropdownMenuItem(value: SortOption.lowestPrice, child: Text('Menor precio')),
+            DropdownMenuItem(value: SortOption.highestPrice, child: Text('Mayor precio')),
+            DropdownMenuItem(value: SortOption.locationAsc, child: Text('Ubicación A-Z')),
+          ],
+          onChanged: (SortOption? value) => setState(() => _sortOption = value ?? _sortOption),
+        ),
+      ),
+      SizedBox(
+        width: 260,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text('Hasta USD ${_draftMaxPrice.toStringAsFixed(0)}', style: Theme.of(context).textTheme.titleMedium),
+            Slider(
+              value: _draftMaxPrice.clamp(minPrice, maxPrice),
+              min: minPrice,
+              max: maxPrice,
+              divisions: isSale ? 16 : 18,
+              label: 'USD ${_draftMaxPrice.toStringAsFixed(0)}',
+              onChanged: (double value) => setState(() { _draftMaxPrice = value; _maxPrice = value; }),
+            ),
+          ],
+        ),
+      ),
+    ];
+  }
+
+  IconData _iconForKind(PropertyKind kind) {
+    switch (kind) {
+      case PropertyKind.house: return Icons.home_outlined;
+      case PropertyKind.office: return Icons.business_outlined;
+      case PropertyKind.shop: return Icons.storefront_outlined;
+      case PropertyKind.land: return Icons.terrain_outlined;
+      case PropertyKind.apartment: return Icons.apartment_outlined;
+    }
+  }
+}
+
+class _EmptyResults extends StatelessWidget {
+  const _EmptyResults();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(28),
+          child: Column(
+            children: <Widget>[
+              Icon(Icons.search_off_rounded, size: 48, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(height: 10),
+              Text('No encontramos publicaciones', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 6),
+              const Text('Probá ampliar la ubicación o aumentar el presupuesto máximo.'),
+            ],
+          ),
+        ),
       ),
     );
   }

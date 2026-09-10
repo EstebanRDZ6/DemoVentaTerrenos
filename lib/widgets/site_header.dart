@@ -25,135 +25,157 @@ class SiteHeader extends StatelessWidget {
   final VoidCallback onGoProfile;
   final VoidCallback onGoCrm;
 
+  void _select(BuildContext context, String value) {
+    switch (value) {
+      case 'home':
+        onGoHome();
+        return;
+      case 'sales':
+        onGoSales();
+        return;
+      case 'rentals':
+        onGoRentals();
+        return;
+      case 'contact':
+        onGoContact();
+        return;
+      case 'crm':
+        onGoCrm();
+        return;
+      case 'profile':
+        onGoProfile();
+        return;
+      case 'logout':
+        AuthService.instance.logout();
+        onGoHome();
+        return;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Material(
       color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      child: ValueListenableBuilder<AppUser?>(
-        valueListenable: AuthService.instance.currentUser,
-        builder: (BuildContext context, AppUser? user, _) {
-          return Row(
-            children: <Widget>[
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
-                  borderRadius: BorderRadius.circular(11),
-                ),
-                alignment: Alignment.center,
-                child: const Icon(Icons.location_city, color: Colors.white, size: 22),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: <Widget>[
-                    SizedBox(
-                      width: 210,
-                      child: Text(
-                        'Sitios Propiedades',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                    ),
-                    _NavButton(
-                      label: 'Inicio',
-                      isSelected: currentRoute == '/',
-                      onPressed: onGoHome,
-                    ),
-                    _NavButton(
-                      label: 'Venta',
-                      isSelected: currentRoute == '/venta',
-                      onPressed: onGoSales,
-                    ),
-                    _NavButton(
-                      label: 'Alquiler',
-                      isSelected: currentRoute == '/alquiler',
-                      onPressed: onGoRentals,
-                    ),
-                    _NavButton(
-                      label: 'Contacto',
-                      isSelected: currentRoute == '/contacto',
-                      onPressed: onGoContact,
-                    ),
-                    if (user?.role == UserRole.owner)
-                      _NavButton(
-                        label: 'CRM',
-                        isSelected: currentRoute == '/crm',
-                        onPressed: onGoCrm,
-                      ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 10),
-              if (user == null)
-                ElevatedButton.icon(
-                  onPressed: onGoLogin,
-                  icon: const Icon(Icons.login_outlined),
-                  label: const Text('Iniciar sesion'),
-                )
-              else
-                PopupMenuButton<String>(
-                  icon: CircleAvatar(
-                    child: Text(user.username.substring(0, 1).toUpperCase()),
+      child: SafeArea(
+        bottom: false,
+        child: ValueListenableBuilder<AppUser?>(
+          valueListenable: AuthService.instance.currentUser,
+          builder: (BuildContext context, AppUser? user, _) {
+            return LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                final bool compact = constraints.maxWidth < 760;
+                return Container(
+                  padding: EdgeInsets.symmetric(horizontal: compact ? 16 : 28, vertical: compact ? 10 : 12),
+                  decoration: const BoxDecoration(
+                    border: Border(bottom: BorderSide(color: Color(0xFFE9EDF0))),
                   ),
-                  onSelected: (String value) {
-                    if (value == 'profile') {
-                      onGoProfile();
-                      return;
-                    }
-                    AuthService.instance.logout();
-                    onGoHome();
-                  },
-                  itemBuilder: (_) => <PopupMenuEntry<String>>[
-                    PopupMenuItem<String>(
-                      value: 'profile',
-                      child: Text('Perfil (${user.role.label})'),
-                    ),
-                    const PopupMenuItem<String>(
-                      value: 'logout',
-                      child: Text('Cerrar sesion'),
-                    ),
-                  ],
-                ),
-            ],
-          );
-        },
+                  child: Row(
+                    children: <Widget>[
+                      InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: onGoHome,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Container(
+                              width: 42,
+                              height: 42,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF0A4D68),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              alignment: Alignment.center,
+                              child: const Icon(Icons.location_on_outlined, color: Colors.white),
+                            ),
+                            if (!compact) ...<Widget>[
+                              const SizedBox(width: 10),
+                              const Text('Sitios Propiedades', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                            ],
+                          ],
+                        ),
+                      ),
+                      const Spacer(),
+                      if (!compact) ...<Widget>[
+                        _NavItem(label: 'Inicio', selected: currentRoute == '/', onTap: onGoHome),
+                        _NavItem(label: 'Venta', selected: currentRoute == '/venta', onTap: onGoSales),
+                        _NavItem(label: 'Alquiler', selected: currentRoute == '/alquiler', onTap: onGoRentals),
+                        _NavItem(label: 'Contacto', selected: currentRoute == '/contacto', onTap: onGoContact),
+                        if (user?.role == UserRole.owner)
+                          _NavItem(label: 'CRM', selected: currentRoute == '/crm', onTap: onGoCrm),
+                        const SizedBox(width: 8),
+                      ],
+                      if (user == null)
+                        compact
+                            ? IconButton(tooltip: 'Iniciar sesión', onPressed: onGoLogin, icon: const Icon(Icons.login_rounded))
+                            : FilledButton.icon(
+                                onPressed: onGoLogin,
+                                icon: const Icon(Icons.login_rounded, size: 18),
+                                label: const Text('Iniciar sesión'),
+                              )
+                      else
+                        PopupMenuButton<String>(
+                          tooltip: 'Cuenta',
+                          onSelected: (String value) => _select(context, value),
+                          child: CircleAvatar(
+                            radius: 20,
+                            backgroundColor: const Color(0xFFDCECF2),
+                            foregroundColor: const Color(0xFF0A4D68),
+                            child: Text(user.username.substring(0, 1).toUpperCase()),
+                          ),
+                          itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                            PopupMenuItem<String>(value: 'profile', child: Text('Perfil · ${user.role.label}')),
+                            if (user.role == UserRole.owner)
+                              const PopupMenuItem<String>(value: 'crm', child: Text('Abrir CRM')),
+                            const PopupMenuDivider(),
+                            const PopupMenuItem<String>(value: 'logout', child: Text('Cerrar sesión')),
+                          ],
+                        ),
+                      if (compact)
+                        PopupMenuButton<String>(
+                          tooltip: 'Menú',
+                          icon: const Icon(Icons.menu_rounded),
+                          onSelected: (String value) => _select(context, value),
+                          itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                            const PopupMenuItem<String>(value: 'home', child: Text('Inicio')),
+                            const PopupMenuItem<String>(value: 'sales', child: Text('Terrenos en venta')),
+                            const PopupMenuItem<String>(value: 'rentals', child: Text('Alquileres')),
+                            const PopupMenuItem<String>(value: 'contact', child: Text('Contacto')),
+                            if (user?.role == UserRole.owner)
+                              const PopupMenuItem<String>(value: 'crm', child: Text('CRM')),
+                          ],
+                        ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }
 }
 
-class _NavButton extends StatelessWidget {
-  const _NavButton({
-    required this.label,
-    required this.isSelected,
-    required this.onPressed,
-  });
-
+class _NavItem extends StatelessWidget {
+  const _NavItem({required this.label, required this.selected, required this.onTap});
   final String label;
-  final bool isSelected;
-  final VoidCallback onPressed;
+  final bool selected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    if (isSelected) {
-      return FilledButton(
-        onPressed: onPressed,
-        style: FilledButton.styleFrom(
-          backgroundColor: Colors.blue,
-          foregroundColor: Colors.white,
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: TextButton(
+        onPressed: onTap,
+        style: TextButton.styleFrom(
+          foregroundColor: selected ? const Color(0xFF0A4D68) : const Color(0xFF52606A),
+          backgroundColor: selected ? const Color(0xFFEAF4F7) : Colors.transparent,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
-        child: Text(label),
-      );
-    }
-
-    return OutlinedButton(
-      onPressed: onPressed,
-      child: Text(label),
+        child: Text(label, style: TextStyle(fontWeight: selected ? FontWeight.w700 : FontWeight.w500)),
+      ),
     );
   }
 }
