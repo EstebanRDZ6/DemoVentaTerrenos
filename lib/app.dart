@@ -6,6 +6,7 @@ import 'screens/admin_screen.dart';
 import 'screens/contact_screen.dart';
 import 'screens/create_listing_screen.dart';
 import 'screens/crm_dashboard_screen.dart';
+import 'screens/erp_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/profile_screen.dart';
@@ -19,10 +20,13 @@ class AppRoutes {
   static const String detail = '/publicacion-detalle';
   static const String contact = '/contacto';
   static const String crm = '/crm';
+  static const String erp = '/erp';
   static const String login = '/login';
   static const String profile = '/perfil';
   static const String admin = '/administracion';
   static const String createListing = '/nueva-publicacion';
+
+  static Route<dynamic> page(String name, Widget child) => MaterialPageRoute<dynamic>(settings: RouteSettings(name: name), builder: (_) => child);
 }
 
 class SitiosPropiedadesApp extends StatelessWidget {
@@ -30,7 +34,10 @@ class SitiosPropiedadesApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-    title: 'Sitios Propiedades', debugShowCheckedModeBanner: false, theme: AppTheme.lightTheme, initialRoute: AppRoutes.home,
+    title: 'Sitios Propiedades',
+    debugShowCheckedModeBanner: false,
+    theme: AppTheme.lightTheme,
+    initialRoute: AppRoutes.home,
     onGenerateRoute: (RouteSettings settings) {
       switch (settings.name) {
         case AppRoutes.home: return MaterialPageRoute<void>(settings: settings, builder: (_) => const HomeScreen());
@@ -41,6 +48,7 @@ class SitiosPropiedadesApp extends StatelessWidget {
           return MaterialPageRoute<void>(settings: settings, builder: (_) => PropertyDetailScreen(listing: listing));
         case AppRoutes.contact: return MaterialPageRoute<void>(settings: settings, builder: (_) => const ContactScreen());
         case AppRoutes.crm: return MaterialPageRoute<void>(settings: settings, builder: (_) => const CrmDashboardScreen());
+        case AppRoutes.erp: return MaterialPageRoute<void>(settings: settings, builder: (_) => const ErpScreen());
         case AppRoutes.login: return MaterialPageRoute<void>(settings: settings, builder: (_) => const LoginScreen());
         case AppRoutes.profile: return MaterialPageRoute<void>(settings: settings, builder: (_) => const ProfileScreen());
         case AppRoutes.admin: return MaterialPageRoute<void>(settings: settings, builder: (_) => const AdminScreen());
