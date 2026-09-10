@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
 import 'models/property_listing.dart';
 import 'screens/contact_screen.dart';
-import 'screens/crm_screen.dart';
+import 'screens/crm_dashboard_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/profile_screen.dart';
@@ -31,45 +31,27 @@ class SitiosPropiedadesApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       initialRoute: AppRoutes.home,
-      onGenerateRoute: (settings) {
+      onGenerateRoute: (RouteSettings settings) {
         switch (settings.name) {
           case AppRoutes.home:
-            return MaterialPageRoute<void>(
-              builder: (_) => const HomeScreen(),
-            );
+            return MaterialPageRoute<void>(builder: (_) => const HomeScreen());
           case AppRoutes.sales:
-            return MaterialPageRoute<void>(
-              builder: (_) => const PropertyListScreen(type: ListingType.sale),
-            );
+            return MaterialPageRoute<void>(builder: (_) => const PropertyListScreen(type: ListingType.sale));
           case AppRoutes.rentals:
-            return MaterialPageRoute<void>(
-              builder: (_) => const PropertyListScreen(type: ListingType.rent),
-            );
+            return MaterialPageRoute<void>(builder: (_) => const PropertyListScreen(type: ListingType.rent));
           case AppRoutes.detail:
             final PropertyListing listing = settings.arguments! as PropertyListing;
-            return MaterialPageRoute<void>(
-              builder: (_) => PropertyDetailScreen(listing: listing),
-            );
+            return MaterialPageRoute<void>(builder: (_) => PropertyDetailScreen(listing: listing));
           case AppRoutes.contact:
-            return MaterialPageRoute<void>(
-              builder: (_) => const ContactScreen(),
-            );
+            return MaterialPageRoute<void>(builder: (_) => const ContactScreen());
           case AppRoutes.crm:
-            return MaterialPageRoute<void>(
-              builder: (_) => const CrmScreen(),
-            );
+            return MaterialPageRoute<void>(builder: (_) => const CrmDashboardScreen());
           case AppRoutes.login:
-            return MaterialPageRoute<void>(
-              builder: (_) => const LoginScreen(),
-            );
+            return MaterialPageRoute<void>(builder: (_) => const LoginScreen());
           case AppRoutes.profile:
-            return MaterialPageRoute<void>(
-              builder: (_) => const ProfileScreen(),
-            );
+            return MaterialPageRoute<void>(builder: (_) => const ProfileScreen());
           default:
-            return MaterialPageRoute<void>(
-              builder: (_) => const HomeScreen(),
-            );
+            return MaterialPageRoute<void>(builder: (_) => const HomeScreen());
         }
       },
     );
