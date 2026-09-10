@@ -21,6 +21,22 @@ class AuthService {
         email: 'sitiospropiedades@gmail.com',
         whatsapp: '+54 9 3764 26-0767',
         address: 'Av. Francisco de Haro 1234, Posadas, Misiones',
+        canCreateListings: true,
+        canUseCrm: true,
+      );
+      return true;
+    }
+
+    if (normalizedUser == 'vendedor' && normalizedPass == '1234') {
+      currentUser.value = const AppUser(
+        username: 'Vendedor',
+        role: UserRole.seller,
+        fullName: 'Vendedor Demo',
+        email: 'vendedor@demo.com',
+        whatsapp: '+54 9 3764 00-1111',
+        address: 'Posadas, Misiones',
+        canCreateListings: true,
+        canUseCrm: true,
       );
       return true;
     }
