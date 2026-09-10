@@ -27,15 +27,28 @@ class SiteHeader extends StatelessWidget {
 
   void _select(BuildContext context, String value) {
     switch (value) {
-      case 'home': onGoHome();
-      case 'sales': onGoSales();
-      case 'rentals': onGoRentals();
-      case 'contact': onGoContact();
-      case 'crm': onGoCrm();
-      case 'profile': onGoProfile();
+      case 'home':
+        onGoHome();
+        return;
+      case 'sales':
+        onGoSales();
+        return;
+      case 'rentals':
+        onGoRentals();
+        return;
+      case 'contact':
+        onGoContact();
+        return;
+      case 'crm':
+        onGoCrm();
+        return;
+      case 'profile':
+        onGoProfile();
+        return;
       case 'logout':
         AuthService.instance.logout();
         onGoHome();
+        return;
     }
   }
 
@@ -52,10 +65,7 @@ class SiteHeader extends StatelessWidget {
               builder: (BuildContext context, BoxConstraints constraints) {
                 final bool compact = constraints.maxWidth < 760;
                 return Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: compact ? 16 : 28,
-                    vertical: compact ? 10 : 12,
-                  ),
+                  padding: EdgeInsets.symmetric(horizontal: compact ? 16 : 28, vertical: compact ? 10 : 12),
                   decoration: const BoxDecoration(
                     border: Border(bottom: BorderSide(color: Color(0xFFE9EDF0))),
                   ),
@@ -79,10 +89,7 @@ class SiteHeader extends StatelessWidget {
                             ),
                             if (!compact) ...<Widget>[
                               const SizedBox(width: 10),
-                              const Text(
-                                'Sitios Propiedades',
-                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
-                              ),
+                              const Text('Sitios Propiedades', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                             ],
                           ],
                         ),
@@ -99,11 +106,7 @@ class SiteHeader extends StatelessWidget {
                       ],
                       if (user == null)
                         compact
-                            ? IconButton(
-                                tooltip: 'Iniciar sesión',
-                                onPressed: onGoLogin,
-                                icon: const Icon(Icons.login_rounded),
-                              )
+                            ? IconButton(tooltip: 'Iniciar sesión', onPressed: onGoLogin, icon: const Icon(Icons.login_rounded))
                             : FilledButton.icon(
                                 onPressed: onGoLogin,
                                 icon: const Icon(Icons.login_rounded, size: 18),
@@ -127,8 +130,7 @@ class SiteHeader extends StatelessWidget {
                             const PopupMenuItem<String>(value: 'logout', child: Text('Cerrar sesión')),
                           ],
                         ),
-                      if (compact) ...<Widget>[
-                        const SizedBox(width: 2),
+                      if (compact)
                         PopupMenuButton<String>(
                           tooltip: 'Menú',
                           icon: const Icon(Icons.menu_rounded),
@@ -142,7 +144,6 @@ class SiteHeader extends StatelessWidget {
                               const PopupMenuItem<String>(value: 'crm', child: Text('CRM')),
                           ],
                         ),
-                      ],
                     ],
                   ),
                 );
@@ -157,7 +158,6 @@ class SiteHeader extends StatelessWidget {
 
 class _NavItem extends StatelessWidget {
   const _NavItem({required this.label, required this.selected, required this.onTap});
-
   final String label;
   final bool selected;
   final VoidCallback onTap;
