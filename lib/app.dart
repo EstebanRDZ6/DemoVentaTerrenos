@@ -34,24 +34,24 @@ class SitiosPropiedadesApp extends StatelessWidget {
       onGenerateRoute: (RouteSettings settings) {
         switch (settings.name) {
           case AppRoutes.home:
-            return MaterialPageRoute<void>(builder: (_) => const HomeScreen());
+            return MaterialPageRoute<void>(settings: settings, builder: (_) => const HomeScreen());
           case AppRoutes.sales:
-            return MaterialPageRoute<void>(builder: (_) => const PropertyListScreen(type: ListingType.sale));
+            return MaterialPageRoute<void>(settings: settings, builder: (_) => const PropertyListScreen(type: ListingType.sale));
           case AppRoutes.rentals:
-            return MaterialPageRoute<void>(builder: (_) => const PropertyListScreen(type: ListingType.rent));
+            return MaterialPageRoute<void>(settings: settings, builder: (_) => const PropertyListScreen(type: ListingType.rent));
           case AppRoutes.detail:
             final PropertyListing listing = settings.arguments! as PropertyListing;
-            return MaterialPageRoute<void>(builder: (_) => PropertyDetailScreen(listing: listing));
+            return MaterialPageRoute<void>(settings: settings, builder: (_) => PropertyDetailScreen(listing: listing));
           case AppRoutes.contact:
-            return MaterialPageRoute<void>(builder: (_) => const ContactScreen());
+            return MaterialPageRoute<void>(settings: settings, builder: (_) => const ContactScreen());
           case AppRoutes.crm:
-            return MaterialPageRoute<void>(builder: (_) => const CrmDashboardScreen());
+            return MaterialPageRoute<void>(settings: settings, builder: (_) => const CrmDashboardScreen());
           case AppRoutes.login:
-            return MaterialPageRoute<void>(builder: (_) => const LoginScreen());
+            return MaterialPageRoute<void>(settings: settings, builder: (_) => const LoginScreen());
           case AppRoutes.profile:
-            return MaterialPageRoute<void>(builder: (_) => const ProfileScreen());
+            return MaterialPageRoute<void>(settings: settings, builder: (_) => const ProfileScreen());
           default:
-            return MaterialPageRoute<void>(builder: (_) => const HomeScreen());
+            return MaterialPageRoute<void>(settings: settings, builder: (_) => const HomeScreen());
         }
       },
     );
