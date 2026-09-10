@@ -298,9 +298,6 @@ class _ErpScreenState extends State<ErpScreen> {
               if (constraints.maxWidth < 760) {
                 return Column(
                   children: data
-                      .map((_) => data)
-                      .expand((List<_Metric> list) => list)
-                      .take(data.length)
                       .map(
                         (_Metric metric) => Padding(
                           padding: const EdgeInsets.only(bottom: 10),
