@@ -21,7 +21,7 @@ class SiteHeader extends StatelessWidget {
       case 'sell': Navigator.pushNamed(context, AppRoutes.sellWithUs); break;
       case 'contact': onGoContact(); break;
       case 'crm': onGoCrm(); break;
-      case 'erp': Navigator.pushNamed(context, AppRoutes.erp); break;
+      case 'erp': (onGoErp ?? () => Navigator.pushNamed(context, AppRoutes.erp))(); break;
       case 'profile': onGoProfile(); break;
       case 'admin': Navigator.pushNamed(context, AppRoutes.admin); break;
       case 'create': Navigator.pushNamed(context, AppRoutes.createListing); break;
